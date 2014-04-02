@@ -1,0 +1,4 @@
+class StaticPagesController < ApplicationController
+ 
+  
+end

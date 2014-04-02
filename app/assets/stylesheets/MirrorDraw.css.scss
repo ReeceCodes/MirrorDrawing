@@ -1,0 +1,22 @@
+@import "bootstrap";
+
+canvas {
+	border: 1px solid black;
+}
+
+body {
+	padding-top: 80px;
+}
+
+#logo { 
+	padding-left:40px;
+	padding-top: 10px;
+	font-size: 20px;
+	display: inline-block;
+}
+
+#mir {
+	border: 1px solid red; 
+	margin-left:-4px; 
+	
+}
