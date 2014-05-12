@@ -9,13 +9,41 @@ function point(x,y){
 	this.x  = x;
 	this.y = y;
 	this.drawn = false;
+	this.px = MD.PX;
 }
+
+var MD = MD || (MD = {});
+MD.PX = 1;
+
+function SetPX(ddl){
+	//not actually made yet
+	MD.PX = 1 || ddl.options[ddl.selectedIndex].value; 
+	}
 
 function setup(){
 	var can = document.getElementById('can');
 	var mir = document.getElementById('mir');
 	
+	can.oncontextmenu = function(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			return false;
+	}
+	
+	mir.oncontextmenu = function(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			return false;
+	}
+	
 	can.addEventListener('mousedown', function(e){ 
+		
+		if (e.which==3){
+				//ignore right click
+				e.preventDefault();
+				return;
+		}
+		
 		x = (window.Event) ? e.pageX : event.clientX;
 		y = (window.Event) ? e.pageY : event.clientY;
 		
@@ -38,6 +66,8 @@ function setup(){
 			x -= can.offsetParent.offsetLeft;
 			y -= can.offsetParent.offsetTop;
 			
+			//supposed to stop drawing when you exit canvas and might stop writing points but it doesn't close the path. likely something when moving the mouse
+			//and highlighting and etc etc that it just skips the events
 			if (x < 0 + can.offsetLeft || x >= can.width + can.offsetLeft || y < 0 + can.offsetTop || y >= can.height + can.offsetTop){
 				notdrawing();
 				return;
@@ -106,27 +136,35 @@ function Draw(){
 			
 	prevpoint = points[0];
 			
-	ctx.beginPath();
-	mtx.beginPath();
+	//ctx.beginPath();
+	//mtx.beginPath();
 	
 	//minus 2 from the mirror x because of the border or margin or padding...idk why but 2 seems to be closest but not perfect
 	
-	ctx.arc(points[0].x - can.offsetLeft,points[0].y - can.offsetTop,0.5,0,2*Math.PI,false);
-	ctx.fill();
-	mtx.arc(-1*points[0].x + mir.offsetLeft-2,points[0].y - mir.offsetTop,0.5,0,2*Math.PI,false);
-	mtx.fill();
+	//ctx.arc(points[0].x - can.offsetLeft,points[0].y - can.offsetTop,0.5,0,2*Math.PI,false);
+	//ctx.fill();
+	//mtx.arc(-1*points[0].x + mir.offsetLeft-2,points[0].y - mir.offsetTop,0.5,0,2*Math.PI,false);
+	//mtx.fill();
 	
-	mtx.closePath();
-	ctx.closePath();
+	//mtx.closePath();
+	//ctx.closePath();
 	
 	if (lastpoint != -1){
-		ctx.lineWidth = 2.0;
-		mtx.lineWidth = 2.0;
+		ctx.lineWidth = lastpoint.px;
+		mtx.lineWidth = lastpoint.px;
 		
-		ctx.lineTo(lastpoint.x-can.offsetLeft, lastpoint.y-can.offsetTop);
+		ctx.moveTo(points[0].x-can.offsetLeft+0.5, points[0].y-can.offsetTop);
+		ctx.lineTo(lastpoint.x-can.offsetLeft+0.5, lastpoint.y-can.offsetTop);
 		ctx.stroke();
-		mtx.lineTo(-1*lastpoint.x+mir.offsetLeft-2, lastpoint.y-mir.offsetTop);
+		
+		mtx.moveTo(-1*points[0].x-4+mir.offsetLeft+0.5, points[0].y-mir.offsetTop);
+		mtx.lineTo(-1*lastpoint.x-4+mir.offsetLeft+0.5, lastpoint.y-mir.offsetTop);
 		mtx.stroke();
+		
+	//	ctx.lineTo(lastpoint.x-can.offsetLeft, lastpoint.y-can.offsetTop);
+	//	ctx.stroke();
+	//	mtx.lineTo(-1*lastpoint.x+mir.offsetLeft-2, lastpoint.y-mir.offsetTop);
+	//	mtx.stroke();
 	}
 	
 	mtx.closePath();
