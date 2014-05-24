@@ -10,19 +10,35 @@ function point(x,y){
 	this.y = y;
 	this.drawn = false;
 	this.px = MD.PX;
+	this.color = MD.COLOR;
 }
 
 var MD = MD || (MD = {});
 MD.PX = 1;
+MD.COLOR = 'black';
 
 function SetPX(ddl){
-	//not actually made yet
-	MD.PX = 1 || ddl.options[ddl.selectedIndex].value; 
+	MD.PX = ddl.options[ddl.selectedIndex].value || 1; 
+	}
+	
+function SetColor(ddl){
+	
+	MD.COLOR = ddl.options[ddl.selectedIndex].value || 'black'; 
 	}
 
 function setup(){
 	var can = document.getElementById('can');
 	var mir = document.getElementById('mir');
+	var lw = document.getElementById('LineWidth');
+	var lc = document.getElementById('LineColor');
+	
+	lw.addEventListener('change', function(){
+		SetPX(lw);
+	});
+	
+	lc.addEventListener('change', function(){
+		SetColor(lc);
+	});
 	
 	can.oncontextmenu = function(event) {
 			event.preventDefault();
@@ -135,23 +151,13 @@ function Draw(){
 	points[0].drawn = true;
 			
 	prevpoint = points[0];
-			
-	//ctx.beginPath();
-	//mtx.beginPath();
-	
-	//minus 2 from the mirror x because of the border or margin or padding...idk why but 2 seems to be closest but not perfect
-	
-	//ctx.arc(points[0].x - can.offsetLeft,points[0].y - can.offsetTop,0.5,0,2*Math.PI,false);
-	//ctx.fill();
-	//mtx.arc(-1*points[0].x + mir.offsetLeft-2,points[0].y - mir.offsetTop,0.5,0,2*Math.PI,false);
-	//mtx.fill();
-	
-	//mtx.closePath();
-	//ctx.closePath();
-	
+		
 	if (lastpoint != -1){
 		ctx.lineWidth = lastpoint.px;
 		mtx.lineWidth = lastpoint.px;
+		
+		ctx.strokeStyle = lastpoint.color;
+		mtx.strokeStyle = lastpoint.color;
 		
 		ctx.moveTo(points[0].x-can.offsetLeft+0.5, points[0].y-can.offsetTop);
 		ctx.lineTo(lastpoint.x-can.offsetLeft+0.5, lastpoint.y-can.offsetTop);
@@ -161,10 +167,6 @@ function Draw(){
 		mtx.lineTo(-1*lastpoint.x-4+mir.offsetLeft+0.5, lastpoint.y-mir.offsetTop);
 		mtx.stroke();
 		
-	//	ctx.lineTo(lastpoint.x-can.offsetLeft, lastpoint.y-can.offsetTop);
-	//	ctx.stroke();
-	//	mtx.lineTo(-1*lastpoint.x+mir.offsetLeft-2, lastpoint.y-mir.offsetTop);
-	//	mtx.stroke();
 	}
 	
 	mtx.closePath();
@@ -179,5 +181,6 @@ function Draw(){
 	htx.drawImage(can,0,0);
 	htx.drawImage(mir,mir.width, 0);
 	
-	
+	//notes, other canvas isn't hidden...could be but that will be the saved image later
+	//TODO: fix touch events, fix select/highlight canvas which breaks drawing, fix smaller width pushes canvases to a stacked view which breaks drawing need to get the x to be relative, ideally get the mirror to draw with the same context just flipped
 }
