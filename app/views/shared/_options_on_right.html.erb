@@ -1,11 +1,25 @@
 <div class='option_sidebar well'>
 
+<p> 
+<%= button_tag 'Save', type: 'button', id: 'btnSave', onclick: 'Save();' %> <br/>
+<%= text_field_tag 'FileName', '', size: 50, maxlength: 50, placeholder: 'file name', style: 'height: 25px;width:90%;' %> <br/>
+<%= content_tag(:a, 'Save', id: 'IMGLink', name: 'IMGLink', class:'btn' ) %>
+</p>
+<p> 
+<%= button_tag 'Clear', type: 'button', id: 'btnClear', onclick: 'ClearCanvas();' %>
+</p>
+
 <p> Line Width: <br/>
 <%= select_tag "LineWidth", options_for_select([ "1", "2", "3", "4", "5", "21" ], "1") %>
 </p>
 
 <p> Line Color: <br/>
 <%= select_tag "LineColor", options_for_select([ "red", "green", "yellow", "blue", "purple", "black", "white" ], "black") %>
+</p>
+
+<p>
+<p id="SaveInfo" class="label-info" style="display:none;">Right click and save the image below to download</p>
+ <%= content_tag(:image, '', id: 'img', name: 'img', style: 'border: 1px solid #000; display:none;' ) %>
 </p>
 
 </div>

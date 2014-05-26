@@ -1,3 +1,8 @@
+//my variables. probaly want to get some into a namgespace
+//moved all canvas gets here so I didn't have to create new variables over and over when the same element is what I want.
+var can = document.getElementById('can');
+var mir = document.getElementById('mir');
+var hid = document.getElementById('hid');
 
 var t = [];
 var x;
@@ -17,27 +22,36 @@ var MD = MD || (MD = {});
 MD.PX = 1;
 MD.COLOR = 'black';
 
+//options
+
 function SetPX(ddl){
 	MD.PX = ddl.options[ddl.selectedIndex].value || 1; 
 	}
 	
 function SetColor(ddl){
-	
 	MD.COLOR = ddl.options[ddl.selectedIndex].value || 'black'; 
 	}
-
-function setup(){
-	var can = document.getElementById('can');
-	var mir = document.getElementById('mir');
-	var lw = document.getElementById('LineWidth');
-	var lc = document.getElementById('LineColor');
 	
-	lw.addEventListener('change', function(){
-		SetPX(lw);
+//add and disable events, create defaults where needed
+function setup(){
+	can = can || document.getElementById('can');
+	mir = mir || document.getElementById('mir');
+	hid = hid || document.getElementById('hid');
+
+	var linewidth = document.getElementById('LineWidth');
+	var linecolor = document.getElementById('LineColor');
+	var imglink = document.getElementById('IMGLink');
+	
+	linewidth.addEventListener('change', function(){
+		SetPX(linewidth);
 	});
 	
-	lc.addEventListener('change', function(){
-		SetColor(lc);
+	linecolor.addEventListener('change', function(){
+		SetColor(linecolor);
+	});
+	
+	imglink.addEventListener('click', function(){
+		SaveLink();
 	});
 	
 	can.oncontextmenu = function(event) {
@@ -89,7 +103,6 @@ function setup(){
 				return;
 			}
 			
-			
 			var p = new point(x,y);
 			
 			points.push(p);
@@ -98,11 +111,26 @@ function setup(){
 	},false);
 	
 	can.addEventListener('mouseup', notdrawing, false);
+	
+	//hide save button by if the download attribute is available..bugged in Chrome even though it's supported...sadface.png
+	
+	if (typeof document.createElement('a').download != 'undefined'){
+		//hide button so that the link can be used
+		var btn = document.getElementById('btnSave');
+		btn.style.display = 'none';
+	}
+	else{
+	//hide link and textbox as it doesn't work
+	imglink.style.display = 'none';
+	
+	var txt = document.getElementById('FileName');
+	txt.style.display = 'none';
+	
+	}
 }
 
+//helpers
 function drawing(){
-	var can = document.getElementById('can');
-	var mir = document.getElementById('mir');
 	can.style.cursor = "crosshair";
 	
 	t = [];
@@ -113,7 +141,6 @@ function drawing(){
 }
 
 function notdrawing(){
-	var can = document.getElementById('can');
 	can.style.cursor = "default";
 	
 	moving = false;
@@ -123,6 +150,7 @@ function notdrawing(){
 	points.push(p);
 }
 
+//drawing
 function Draw(){
 	if (points.length < 1){
 		//for (var i = 0; i < t.length; i++){ //this made it store everything until the next click because it would clear the intervals until next drawing. just fun to watch
@@ -136,10 +164,7 @@ function Draw(){
 		points.splice(0,1);
 		return;
 	}
-	
-	var can = document.getElementById('can');
-	var mir = document.getElementById('mir');
-		
+
 	var ctx = can.getContext('2d'); //[];
 	var mtx = mir.getContext('2d');
 	
@@ -173,8 +198,7 @@ function Draw(){
 	ctx.closePath();
 	
 	points.splice(0,1);
-	
-	var hid = document.getElementById('hid');
+
 	var htx = hid.getContext('2d');
 	
 	//draw onto the hidden canvas, doesn't account for padding or anything.
@@ -183,4 +207,77 @@ function Draw(){
 	
 	//notes, other canvas isn't hidden...could be but that will be the saved image later
 	//TODO: fix touch events, fix select/highlight canvas which breaks drawing, fix smaller width pushes canvases to a stacked view which breaks drawing need to get the x to be relative, ideally get the mirror to draw with the same context just flipped
+}
+
+//standalone functions
+function ClearCanvas(){
+	
+	var ctx = can.getContext('2d');
+	var mtx = mir.getContext('2d');
+	var htx = hid.getContext('2d');
+	
+	//clear writing canvas
+	ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, can.width, can.height);
+    ctx.restore();
+	
+	//clear mirror canvas
+	mtx.save();
+    mtx.setTransform(1, 0, 0, 1, 0, 0);
+    mtx.clearRect(0, 0, mir.width, mir.height);
+    mtx.restore();
+	
+	//clear bottom canvas
+	htx.save();
+    htx.setTransform(1, 0, 0, 1, 0, 0);
+    htx.clearRect(0, 0, hid.width, hid.height);
+    htx.restore();	
+	
+	var img = document.getElementById('img');
+	img.src = '';
+	img.style.display = 'none';
+	
+	var directions = document.getElementById('SaveInfo');
+	directions.style.display = 'none';
+}
+
+function Save(){
+
+	var image = hid.toDataURL();
+	var img = document.getElementById('img');
+	img.src = image;
+	img.style.display = '';
+
+	var directions = document.getElementById('SaveInfo');
+	directions.style.display = '';
+	
+	//window.location.href = image.replace('image/png', 'image/octet-stream');
+}
+
+function SaveLink(){
+	var image = hid.toDataURL();
+	
+	var filename = '';
+
+	var txtFileName = document.getElementById('FileName');
+	var imglink = document.getElementById('IMGLink');
+		
+	var img = document.getElementById('img');
+	img.src = image;
+	img.style.display = '';
+	
+	imglink.href = image;
+	
+	if (txtFileName.value == ""){
+		filename = 'mirrorimage';
+	}
+	else {
+		filename = txtFileName.value;
+	}
+	
+	var directions = document.getElementById('SaveInfo');
+	directions.style.display = '';
+	
+	imglink.download = filename + '.png';
 }
