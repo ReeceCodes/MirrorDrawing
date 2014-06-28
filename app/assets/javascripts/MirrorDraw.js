@@ -21,6 +21,8 @@ function point(x,y){
 var MD = MD || (MD = {});
 MD.PX = 1;
 MD.COLOR = 'black';
+MD.DRAWTYPE = 'new';
+
 
 //options
 
@@ -32,6 +34,10 @@ function SetColor(ddl){
 	MD.COLOR = ddl.options[ddl.selectedIndex].value || 'black'; 
 	}
 	
+function SetType(ddl){
+	MD.DRAWTYPE = ddl.options[ddl.selectedIndex].value || 'new'; 
+}
+	
 //add and disable events, create defaults where needed
 function setup(){
 	can = can || document.getElementById('can');
@@ -41,7 +47,9 @@ function setup(){
 	var linewidth = document.getElementById('LineWidth');
 	var linecolor = document.getElementById('LineColor');
 	var imglink = document.getElementById('IMGLink');
+	var drawtype = document.getElementById('DrawType');
 	
+	//add options
 	linewidth.addEventListener('change', function(){
 		SetPX(linewidth);
 	});
@@ -50,10 +58,55 @@ function setup(){
 		SetColor(linecolor);
 	});
 	
+	drawtype.addEventListener('change', function(){
+		SetType(drawtype);
+	});
+	
 	imglink.addEventListener('click', function(){
 		SaveLink();
 	});
+	//end options
 	
+	//add touch events
+	
+	can.addEventListener('touchstart', function(e){
+		e.preventDefault();
+		
+		can.style.cursor = 'crosshair';
+		x = e.changedTouches[0].pageX;
+		y = e.changedTouches[0].pageY - can.offsetParent.offsetTop;
+		
+		var p = new point(x,y);
+		points.push(p);
+		drawing();
+	}, false);
+	
+	can.addEventListener('touchmove', function(e){
+		e.preventDefault();
+		if (moving){
+			x = e.changedTouches[0].pageX;
+			y = e.changedTouches[0].pageY - can.offsetParent.offsetTop;
+			
+			if (x < 0 + can.offsetLeft || x >= can.width + can.offsetLeft || y < 0 + can.offsetTop || y >= can.height + can.offsetTop){
+				notdrawing();
+				return;
+			}
+			
+			var p = new point(x,y);
+			
+			points.push(p);
+		}
+		
+	}, false);
+	
+	can.addEventListener('touchend', function(e){
+		e.preventDefault();
+		notdrawing();
+	},false);
+	
+	//end touch
+	
+	//add moush events
 	can.oncontextmenu = function(event) {
 			event.preventDefault();
 			event.stopPropagation();
@@ -112,6 +165,8 @@ function setup(){
 	
 	can.addEventListener('mouseup', notdrawing, false);
 	
+	//end mouse
+	
 	//hide save button by if the download attribute is available..bugged in Chrome even though it's supported...sadface.png
 	
 	if (typeof document.createElement('a').download != 'undefined'){
@@ -128,6 +183,7 @@ function setup(){
 	
 	}
 }
+
 
 //helpers
 function drawing(){
@@ -169,7 +225,10 @@ function Draw(){
 	var mtx = mir.getContext('2d');
 	
 	ctx.beginPath();
-	mtx.beginPath();
+	
+	if (MD.DRAWTYPE == 'old'){
+		mtx.beginPath();
+	}
 	
 	var lastpoint = prevpoint;
 	
@@ -188,14 +247,26 @@ function Draw(){
 		ctx.lineTo(lastpoint.x-can.offsetLeft+0.5, lastpoint.y-can.offsetTop);
 		ctx.stroke();
 		
-		mtx.moveTo(-1*points[0].x-4+mir.offsetLeft+0.5, points[0].y-mir.offsetTop);
-		mtx.lineTo(-1*lastpoint.x-4+mir.offsetLeft+0.5, lastpoint.y-mir.offsetTop);
-		mtx.stroke();
+		if (MD.DRAWTYPE == 'old'){
+			mtx.moveTo(-1*points[0].x-4+mir.offsetLeft+0.5, points[0].y-mir.offsetTop);
+			mtx.lineTo(-1*lastpoint.x-4+mir.offsetLeft+0.5, lastpoint.y-mir.offsetTop);
+			mtx.stroke();
+		}
 		
 	}
 	
-	mtx.closePath();
+	if (MD.DRAWTYPE == 'old'){
+		mtx.closePath();
+	}
 	ctx.closePath();
+	
+	if (MD.DRAWTYPE == 'new'){
+		mtx.save();
+		mtx.translate(can.width, 0);
+		mtx.scale(-1,1);
+		mtx.drawImage(can,0,0);
+		mtx.restore();
+	}
 	
 	points.splice(0,1);
 

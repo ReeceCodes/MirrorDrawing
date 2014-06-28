@@ -17,6 +17,11 @@
 <%= select_tag "LineColor", options_for_select([ "red", "green", "yellow", "blue", "purple", "black", "white" ], "black") %>
 </p>
 
+<p> Old Way vs New Way (old: draw each one at a time, new: draw one then scale backwards) <br/>
+<%= select_tag "DrawType", options_for_select(["old", "new"],"new") %>
+
+</p>
+
 <p>
 <p id="SaveInfo" class="label-info" style="display:none;">Right click and save the image below to download</p>
  <%= content_tag(:image, '', id: 'img', name: 'img', style: 'border: 1px solid #000; display:none;' ) %>
