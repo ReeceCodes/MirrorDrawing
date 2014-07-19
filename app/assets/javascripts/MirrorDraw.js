@@ -5,11 +5,15 @@ var mir = document.getElementById('mir');
 var hid = document.getElementById('hid');
 
 var t = [];
+var t2 = [];
 var x;
 var y;
 var moving = false;
+var moving2 = false;
 var points = [];
+var points2 = [];
 var prevpoint = -1;
+var prevpoint2 = -1;
 function point(x,y){
 	this.x  = x;
 	this.y = y;
@@ -21,7 +25,7 @@ function point(x,y){
 var MD = MD || (MD = {});
 MD.PX = 1;
 MD.COLOR = 'black';
-MD.DRAWTYPE = 'new';
+MD.DRAWTYPE = 'old';
 
 
 //options
@@ -35,11 +39,11 @@ function SetColor(ddl){
 	}
 	
 function SetType(ddl){
-	MD.DRAWTYPE = ddl.options[ddl.selectedIndex].value || 'new'; 
+	MD.DRAWTYPE = ddl.options[ddl.selectedIndex].value || 'old'; 
 }
 	
 //add and disable events, create defaults where needed
-function setup(){
+function setup(body){
 	can = can || document.getElementById('can');
 	mir = mir || document.getElementById('mir');
 	hid = hid || document.getElementById('hid');
@@ -58,14 +62,96 @@ function setup(){
 		SetColor(linecolor);
 	});
 	
-	drawtype.addEventListener('change', function(){
-		SetType(drawtype);
-	});
+	//broke the old/new so default to old
+	//drawtype.addEventListener('change', function(){
+	//	SetType(drawtype);
+	//});
 	
 	imglink.addEventListener('click', function(){
 		SaveLink();
 	});
 	//end options
+	
+	//add events to body to make sure it's not outside the canvas and still drawing, just has to stop events
+	//if it's in the body and not in the canvas push one last point where it picked it up so it draws to the edge of the canvas and stop the moving.
+	//doesn't work as well on touch but it's harder to get to the edge on there too
+	body.addEventListener('touchmove', function(e){
+		
+		if (moving){
+			x = e.changedTouches[0].pageX;
+			y = e.changedTouches[0].pageY - can.offsetParent.offsetTop;
+			
+			if (x < 0 + can.offsetLeft || x >= can.width + can.offsetLeft || y < 0 + can.offsetTop || y >= can.height + can.offsetTop){
+				var p = new point(x,y);
+				points.push(p);
+				
+				notdrawing(false, null);
+				return;
+			}
+			
+			var p = new point(x,y);
+			points.push(p);
+		}
+		
+		if (moving2){
+			x = e.changedTouches[0].pageX;
+			y = e.changedTouches[0].pageY - mir.offsetParent.offsetTop;
+			
+			if (x < 0 + mir.offsetLeft || x >= mir.width + mir.offsetLeft || y < 0 + mir.offsetTop || y >= mir.height + mir.offsetTop){
+				var p = new point(x,y);
+				points2.push(p);
+				
+				notdrawingMirror(false,null);
+				return;
+			}
+			
+			var p = new point(x,y);
+			points2.push(p);
+		}
+		
+	}, false);
+	
+	body.addEventListener('mousemove',function(e){ 
+	
+		if (moving){
+			x = (window.Event) ? e.pageX : event.clientX;
+			y = (window.Event) ? e.pageY : event.clientY;
+			
+			x -= can.offsetParent.offsetLeft;
+			y -= can.offsetParent.offsetTop;
+			
+			if (x < 0 + can.offsetLeft || x >= can.width + can.offsetLeft || y < 0 + can.offsetTop || y >= can.height + can.offsetTop){
+				var p = new point(x,y);
+				points.push(p);
+				
+				notdrawing(false,null);
+				return;
+			}
+			
+			var p = new point(x,y);
+			points.push(p);
+		}
+		
+		if (moving2){
+			x = (window.Event) ? e.pageX : event.clientX;
+			y = (window.Event) ? e.pageY : event.clientY;
+			
+			x -= mir.offsetParent.offsetLeft;
+			y -= mir.offsetParent.offsetTop;
+			
+			if (x < 0 + mir.offsetLeft || x >= mir.width + mir.offsetLeft || y < 0 + mir.offsetTop || y >= mir.height + mir.offsetTop){
+				var p = new point(x,y);
+				points2.push(p);
+				
+				notdrawingMirror(false,null);
+				return;
+			}
+			
+			var p = new point(x,y);
+			points2.push(p);
+		}
+	
+	},false);
 	
 	//add touch events
 	
@@ -87,8 +173,9 @@ function setup(){
 			x = e.changedTouches[0].pageX;
 			y = e.changedTouches[0].pageY - can.offsetParent.offsetTop;
 			
+			//if it's on the left/top/bottom stop, if it's on the right then move to other canvas
 			if (x < 0 + can.offsetLeft || x >= can.width + can.offsetLeft || y < 0 + can.offsetTop || y >= can.height + can.offsetTop){
-				notdrawing();
+				notdrawing(false, null);
 				return;
 			}
 			
@@ -101,12 +188,48 @@ function setup(){
 	
 	can.addEventListener('touchend', function(e){
 		e.preventDefault();
-		notdrawing();
+		notdrawing(false, null);
+	},false);
+	
+	mir.addEventListener('touchstart', function(e){
+		e.preventDefault();
+		
+		mir.style.cursor = 'crosshair';
+		x = e.changedTouches[0].pageX;
+		y = e.changedTouches[0].pageY - mir.offsetParent.offsetTop;
+		
+		var p = new point(x,y);
+		points2.push(p);
+		drawingMirror();
+	}, false);
+	
+	mir.addEventListener('touchmove', function(e){
+		e.preventDefault();
+		if (moving2){
+			x = e.changedTouches[0].pageX;
+			y = e.changedTouches[0].pageY - mir.offsetParent.offsetTop;
+			
+			//if it's on the right/top/bottom stop, if it's on the left then move to other canvas
+			if (x < 0 + mir.offsetLeft || x >= mir.width + mir.offsetLeft || y < 0 + mir.offsetTop || y >= mir.height + mir.offsetTop){
+				notdrawingMirror(false,null);
+				return;
+			}
+			
+			var p = new point(x,y);
+			
+			points2.push(p);
+		}
+		
+	}, false);
+	
+	mir.addEventListener('touchend', function(e){
+		e.preventDefault();
+		notdrawingMirror(false, null);
 	},false);
 	
 	//end touch
 	
-	//add moush events
+	//add mouse events
 	can.oncontextmenu = function(event) {
 			event.preventDefault();
 			event.stopPropagation();
@@ -140,6 +263,27 @@ function setup(){
 		drawing(); 
 	}, false);
 	
+	mir.addEventListener('mousedown', function(e){ 
+		
+		if (e.which==3){
+				//ignore right click
+				e.preventDefault();
+				return;
+		}
+		
+		x = (window.Event) ? e.pageX : event.clientX;
+		y = (window.Event) ? e.pageY : event.clientY;
+		
+		x -= mir.offsetParent.offsetLeft;
+		y -= mir.offsetParent.offsetTop;
+		
+		var p = new point(x,y);
+		
+		points2.push(p);
+		
+		drawingMirror(); 
+	}, false);
+	
 	can.addEventListener('mousemove',function(e){ 
 	
 		if (moving){
@@ -149,10 +293,9 @@ function setup(){
 			x -= can.offsetParent.offsetLeft;
 			y -= can.offsetParent.offsetTop;
 			
-			//supposed to stop drawing when you exit canvas and might stop writing points but it doesn't close the path. likely something when moving the mouse
-			//and highlighting and etc etc that it just skips the events
+			//if it's on the left/top/bottom stop, if it's on the right then move to other canvas
 			if (x < 0 + can.offsetLeft || x >= can.width + can.offsetLeft || y < 0 + can.offsetTop || y >= can.height + can.offsetTop){
-				notdrawing();
+				notdrawing(false,null);
 				return;
 			}
 			
@@ -163,7 +306,31 @@ function setup(){
 	
 	},false);
 	
-	can.addEventListener('mouseup', notdrawing, false);
+	mir.addEventListener('mousemove',function(e){ 
+	
+		if (moving2){
+			x = (window.Event) ? e.pageX : event.clientX;
+			y = (window.Event) ? e.pageY : event.clientY;
+			
+			x -= mir.offsetParent.offsetLeft;
+			y -= mir.offsetParent.offsetTop;
+			
+			//if it's on the right/top/bottom stop, if it's on the left then move to other canvas
+			if (x < 0 + mir.offsetLeft || x >= mir.width + mir.offsetLeft || y < 0 + mir.offsetTop || y >= mir.height + mir.offsetTop){
+				notdrawingMirror(false,null);
+				return;
+			}
+			
+			var p = new point(x,y);
+			
+			points2.push(p);
+		}
+	
+	},false);
+	
+	can.addEventListener('mouseup', function () { notdrawing(false,null); } , false);
+	
+	mir.addEventListener('mouseup', function (){ notdrawingMirror(false,null); }, false);
 	
 	//end mouse
 	
@@ -196,14 +363,48 @@ function drawing(){
 	moving = true;
 }
 
-function notdrawing(){
+function drawingMirror(){
+	mir.style.cursor = "crosshair";
+	
+	t2 = [];
+	
+	t2.push(setInterval(Draw2, 1));
+	
+	moving2 = true;
+}
+
+function notdrawing(startOtherCanvas, startp){
 	can.style.cursor = "default";
 	
 	moving = false;
 	
+	if (startOtherCanvas){
+		points2.push(startp);
+		moving2 = true;
+		mir.style.cursor = "crosshair";
+		drawingMirror();
+	}
+	
 	var p = new point(-1,-1);
 		
 	points.push(p);
+}
+
+function notdrawingMirror(startOtherCanvas, startp){
+	mir.style.cursor = "default";
+	
+	moving2 = false;
+	
+	if (startOtherCanvas){
+		points.push(startp);
+		moving = true;
+		can.style.cursor = "crosshair";
+		drawing();
+	}
+	
+	var p = new point(-1,-1);
+		
+	points2.push(p);
 }
 
 //drawing
@@ -264,7 +465,7 @@ function Draw(){
 		mtx.save();
 		mtx.translate(can.width, 0);
 		mtx.scale(-1,1);
-		mtx.drawImage(can,0,0);
+		mtx.drawImage(can,0,0); //doing this I can't seem to get the half px needed to make the lines the same width on each side.  
 		mtx.restore();
 	}
 	
@@ -272,7 +473,83 @@ function Draw(){
 
 	var htx = hid.getContext('2d');
 	
-	//draw onto the hidden canvas, doesn't account for padding or anything.
+	//draw onto the hidden canvas
+	htx.imageSmoothingEnabled = true;
+	htx.drawImage(can,0,0);
+	htx.drawImage(mir,mir.width, 0);
+	
+	//notes, other canvas isn't hidden...could be but that will be the saved image later
+	//TODO: fix touch events, fix select/highlight canvas which breaks drawing, fix smaller width pushes canvases to a stacked view which breaks drawing need to get the x to be relative, ideally get the mirror to draw with the same context just flipped
+}
+
+//same as draw but draws to mir then transfers to can instead
+function Draw2(){
+	if (points2.length < 1){
+		//for (var i = 0; i < t.length; i++){ //this made it store everything until the next click because it would clear the intervals until next drawing. just fun to watch
+			//clearInterval(t[i]);
+		//}
+		return;
+	}
+	
+	if (points2[0].x == -1 && points2[0].y == -1){
+		prevpoint2 = -1; //reset the points so that the drawing knows to not connect the next point to the previous list.
+		points2.splice(0,1);
+		return;
+	}
+
+	var ctx = can.getContext('2d'); //[];
+	var mtx = mir.getContext('2d');
+	
+	mtx.beginPath();
+	
+	if (MD.DRAWTYPE == 'old'){
+		ctx.beginPath();
+	}
+	
+	var lastpoint2 = prevpoint2;
+	
+	points2[0].drawn = true;
+			
+	prevpoint2 = points2[0];
+		
+	if (lastpoint2 != -1){
+		ctx.lineWidth = lastpoint2.px;
+		mtx.lineWidth = lastpoint2.px;
+		
+		ctx.strokeStyle = lastpoint2.color;
+		mtx.strokeStyle = lastpoint2.color;
+		
+		mtx.moveTo(points2[0].x-mir.offsetLeft+0.5, points2[0].y-mir.offsetTop);
+		mtx.lineTo(lastpoint2.x-mir.offsetLeft+0.5, lastpoint2.y-mir.offsetTop);
+		mtx.stroke();
+		
+		if (MD.DRAWTYPE == 'old'){
+			ctx.moveTo(-1*points2[0].x-4+mir.offsetLeft+(mir.offsetLeft-can.offsetLeft)+0.5, points2[0].y-can.offsetTop);
+			ctx.lineTo(-1*lastpoint2.x-4+mir.offsetLeft+(mir.offsetLeft-can.offsetLeft)+0.5, lastpoint2.y-can.offsetTop);
+			ctx.stroke();
+		}
+		
+	}
+	
+	if (MD.DRAWTYPE == 'old'){
+		ctx.closePath();
+	}
+	mtx.closePath();
+	
+	if (MD.DRAWTYPE == 'new'){
+		ctx.save();
+		ctx.translate(can.width, 0);
+		ctx.scale(-1,1);
+		ctx.drawImage(can,0,0); //doing this I can't seem to get the half px needed to make the lines the same width on each side.  
+		ctx.restore();
+	}
+	
+	points2.splice(0,1);
+
+	var htx = hid.getContext('2d');
+	
+	//draw onto the hidden canvas
+	htx.imageSmoothingEnabled = true;
 	htx.drawImage(can,0,0);
 	htx.drawImage(mir,mir.width, 0);
 	
