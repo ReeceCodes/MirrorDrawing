@@ -20,13 +20,15 @@ function point(x,y){
 	this.drawn = false;
 	this.px = MD.PX;
 	this.color = MD.COLOR;
+	
 }
 
 var MD = MD || (MD = {});
 MD.PX = 1;
 MD.COLOR = 'black';
 MD.DRAWTYPE = 'old';
-
+MD.CW = 200;
+MD.CH = 350;
 
 //options
 
@@ -41,6 +43,21 @@ function SetColor(ddl){
 function SetType(ddl){
 	MD.DRAWTYPE = ddl.options[ddl.selectedIndex].value || 'old'; 
 }
+
+function SetDimension(ddl, dimension){
+	if (dimension == "W"){
+		MD.CW = ddl.options[ddl.selectedIndex].value || 200;
+		can.width = MD.CW;
+		mir.width = MD.CW;
+		hid.width = MD.CW * 2;
+	}
+	else{
+		MD.CH = ddl.options[ddl.selectedIndex].value || 350;
+		can.height = MD.CH;
+		mir.height = MD.CH;
+		hid.height = MD.CH;
+	}
+}
 	
 //add and disable events, create defaults where needed
 function setup(body){
@@ -52,6 +69,8 @@ function setup(body){
 	var linecolor = document.getElementById('LineColor');
 	var imglink = document.getElementById('IMGLink');
 	var drawtype = document.getElementById('DrawType');
+	var ddlHeight = document.getElementById('CanvasHeight');
+	var ddlWidth = document.getElementById('CanvasWidth');
 	
 	//add options
 	linewidth.addEventListener('change', function(){
@@ -70,6 +89,15 @@ function setup(body){
 	imglink.addEventListener('click', function(){
 		SaveLink();
 	});
+	
+	ddlHeight.addEventListener('change', function(){
+		SetDimension(ddlHeight, 'H');
+	});
+	
+	ddlWidth.addEventListener('change', function() {
+		SetDimension(ddlWidth, 'W');
+	});
+	
 	//end options
 	
 	//add events to body to make sure it's not outside the canvas and still drawing, just has to stop events
@@ -244,8 +272,8 @@ function setup(body){
 	
 	can.addEventListener('mousedown', function(e){ 
 		
-		if (e.which==3){
-				//ignore right click
+		if (e.which==2){
+				//ignore mousewheel click
 				e.preventDefault();
 				return;
 		}
@@ -265,8 +293,8 @@ function setup(body){
 	
 	mir.addEventListener('mousedown', function(e){ 
 		
-		if (e.which==3){
-				//ignore right click
+		if (e.which==2){
+				//ignore mousewheel click
 				e.preventDefault();
 				return;
 		}
@@ -349,6 +377,10 @@ function setup(body){
 	txt.style.display = 'none';
 	
 	}
+	
+	if (typeof PrintDebug == 'function'){
+		PrintDebug("Can offset left: " + can.offsetLeft + "<br/>Can offset top:" + can.offsetTop + "<br/>Mir offset left: " + mir.offsetLeft + "<br/>Mir offset top: " + mir.offsetTop , false);
+	}
 }
 
 
@@ -425,6 +457,10 @@ function Draw(){
 	var ctx = can.getContext('2d'); //[];
 	var mtx = mir.getContext('2d');
 	
+	if (typeof PrintDebug == 'function'){
+		PrintDebug(points[0], true);
+	}
+	
 	ctx.beginPath();
 	
 	if (MD.DRAWTYPE == 'old'){
@@ -478,8 +514,6 @@ function Draw(){
 	htx.drawImage(can,0,0);
 	htx.drawImage(mir,mir.width, 0);
 	
-	//notes, other canvas isn't hidden...could be but that will be the saved image later
-	//TODO: fix touch events, fix select/highlight canvas which breaks drawing, fix smaller width pushes canvases to a stacked view which breaks drawing need to get the x to be relative, ideally get the mirror to draw with the same context just flipped
 }
 
 //same as draw but draws to mir then transfers to can instead

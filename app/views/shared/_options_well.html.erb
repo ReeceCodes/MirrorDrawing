@@ -1,0 +1,47 @@
+<div class='option_sidebar well'>
+
+<p> 
+<%= image_tag("hiw.png", size: "300", alt:"Quick how it works") %>
+<%= button_tag 'Save', type: 'button', id: 'btnSave', onclick: 'Save();' %> <br/>
+<%= text_field_tag 'FileName', '', size: 50, maxlength: 50, placeholder: 'file name', style: 'height: 25px;width:90%;' %> <br/>
+<%= content_tag(:a, 'Save', id: 'IMGLink', name: 'IMGLink', class:'btn' ) %>
+</p>
+<br/>
+<p> 
+<%= button_tag 'Clear', type: 'button', id: 'btnClear', onclick: 'ClearCanvas();' %>
+</p>
+
+<p> Line Width: <br/>
+<%= select_tag "LineWidth", options_for_select([ "1", "2", "3", "4", "5", "21" ], "1") %>
+</p>
+
+<p> Line Color: <br/>
+<%= select_tag "LineColor", options_for_select([ "red", "green", "yellow", "blue", "purple", "black", "white" ], "black") %>
+</p>
+
+<p> Canvas Size (px):
+<br/>
+<span class="label-info">This will clear the canvases. Anything drawn will be gone.</span>
+<br/>
+<strong>Height:</strong> <br/>
+<%= select_tag "CanvasHeight", options_for_select([200, 250, 300, 350, 400, 450, 500 ], "350") %> 
+<br/>
+<strong>Width (each):</strong> <br/>
+<%= select_tag "CanvasWidth", options_for_select([200, 250, 300, 350, 400, 450, 500 ], "200") %> 
+</p>
+
+
+
+<!-- Broke when letting the mirror draw too bc then they both tried to mirror and redrew and things got bad, would have to find a way to save the prev so it doesn't mirror both when drawing one...
+ <p> Old Way vs New Way (old: draw each one at a time, new: draw one then scale backwards) <br/>
+<%= select_tag "DrawType", options_for_select(["old", "new"],"old") %> -->
+
+</p>
+
+<p>
+<p id="SaveInfo" class="label-info" style="display:none;">Right click and save the image below to download</p>
+ <%= content_tag(:image, '', id: 'img', name: 'img', style: 'border: 1px solid #000; display:none;' ) %>
+</p>
+
+</div>
+
