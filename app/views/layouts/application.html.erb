@@ -27,7 +27,9 @@
 </div>
 <%= debug(params) if Rails.env.development? %>
 <% if Rails.env.development? && current_page?(root_url) %>
+	<%= hidden_field_tag 'debug', 'true' %>
 	<%= javascript_include_tag "debugger", media: "all", "data-turbolinks-track" => true if Rails.env.development? %>
+	
 <% end %>
 </body>
 </html>

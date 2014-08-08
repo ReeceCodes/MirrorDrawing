@@ -1,5 +1,12 @@
 
 function CreateHUD(){
+	var dbug = document.getElementById('debug');
+	if (!(dbug && dbug.value == "true")){
+		PrintDebug = null;
+		return;
+	}
+		
+	
 	var panel = document.createElement('div');
 	var details = document.createElement('span');
 	details.id = 'debugInfo';
