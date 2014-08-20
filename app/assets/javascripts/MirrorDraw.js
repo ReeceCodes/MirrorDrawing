@@ -187,7 +187,7 @@ function setup(body){
 		e.preventDefault();
 		
 		can.style.cursor = 'crosshair';
-		x = e.changedTouches[0].pageX;
+		x = e.changedTouches[0].pageX; //e.changedTouches[0].pageX + (e.changedTouches[0].clientX - $(can).offset().left) //no good
 		y = e.changedTouches[0].pageY - can.offsetParent.offsetTop;
 		
 		var p = new point(x,y);
@@ -379,7 +379,7 @@ function setup(body){
 	}
 	
 	if (typeof PrintDebug == 'function'){
-		PrintDebug("Can offset left: " + can.offsetLeft + "<br/>Can offset top:" + can.offsetTop + "<br/>Mir offset left: " + mir.offsetLeft + "<br/>Mir offset top: " + mir.offsetTop , false);
+		//PrintDebug("Can offset left: " + can.offsetLeft + "<br/>Can offset top:" + can.offsetTop + "<br/>Mir offset left: " + mir.offsetLeft + "<br/>Mir offset top: " + mir.offsetTop , false);
 	}
 }
 
@@ -458,7 +458,7 @@ function Draw(){
 	var mtx = mir.getContext('2d');
 	
 	if (typeof PrintDebug == 'function'){
-		PrintDebug(points[0], true);
+		//PrintDebug(points[0], true);
 	}
 	
 	ctx.beginPath();
