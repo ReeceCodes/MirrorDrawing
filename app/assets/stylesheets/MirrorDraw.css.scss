@@ -16,6 +16,8 @@ body {
         user-select: none;
         outline: none;
         -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+		
+	font-size: 2em; /* increase font size. some looks ok some looks crap but more ok than crap */
 }
 
 #logo { 
@@ -45,8 +47,11 @@ select{
 	width: auto !important;
 }
 
-#right_sidebar {
-	float: right;
-	right:20px;
-	
+#left_sidebar {
+	float: left;
+	margin-left: 20px;
+}
+
+#left_sidebar, #canvas_container {
+	position:static;
 }
